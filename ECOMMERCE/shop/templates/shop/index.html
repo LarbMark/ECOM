@@ -1,0 +1,99 @@
+{% extends "shop/base.html" %}
+{% block content %}
+    <div>
+        <form class="d-flex" role="search">
+            <div class="col">
+                <input class="form-control form-control-borderless" placeholder="Entrer le produit cherché" name ="item-name" type="search" placeholder="Recherche" aria-label="Recherche"/>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-success" type="submit">Recherche</button>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        {% for produit in produits %}
+        <div class="col-md-3">
+            <div class="card">
+                <img src="{{ produit.image }}" alt="" class="card-img-top">
+                <div class="card-body">
+                    <div id="tr{{ produit.id }}" class="card-title">{{produit.titre}}</div>
+                    <div id="prix{{produit.id}}" style="color: blueviolet" class="card-text">{{produit.prix}} </div>
+                    <a href="{{ produit.id }}" class="btn btn-warning">Voire</a>
+                    <button id="{{ produit.id }}" class="btn add_art btn-success">Ajouter</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="row mt-3">
+            <div class="col-md-3 offset-md-5">
+                <ul class="pagination">
+                    {% if produits.has_previous  %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ produits.previous_page_number }}">Precedant</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ produits.number }}">{{ produits.number }}</a>
+                    </li>
+
+                    {% if produits.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{produits.next_page_number}}">Suivant</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+
+        </div>
+
+
+
+    </div>
+    
+{% endblock  %}
+{% block js %}
+    <script type="text/javascript">
+        console.log('pour le test');
+        if (localStorage.getItem('panier')== null) {
+            var panier={};
+         }else {
+            panier =JSON.parse(localStorage.getItem('panier'));
+         }
+         $(document).on('click', '.add_art',function(){
+            console.log('ajouter');
+            var id_item = this.id.toString();
+            console.log(id_item);
+            if (panier[id_item] != undefined){
+                qte = panier[id_item][0] + 1;
+                panier[id_item][0] = qte;
+                panier[id_item][2] += parseFloat(document.getElementById("prix"+id_item).innerHTML);
+            }else{
+                nom=document.getElementById("tr"+id_item).innerHTML;
+                prix=parseFloat(document.getElementById("prix"+id_item).innerHTML);
+                panier[id_item]=[1,nom,prix];
+
+            }
+
+            console.log(panier);
+            localStorage.setItem('panier', JSON.stringify(panier));
+            document.getElementById('panier').innerHTML = "Panier ("+Object.keys(panier).length+")"
+         });
+         
+         BullPanier(panier);
+         function BullPanier(panier){
+            var bull = "";
+            var ndx =1;
+            bull += "<h5>Voici votre panier </h5>";
+            for (var x in panier){
+                bull +=ndx + " ";
+                bull += document.getElementById("tr"+x).innerHTML + " (Qté : " + panier[x][0] + ")" + "</br>";
+                ndx += 1;
+            }
+            bull += "<a href='/checkout' class='btn btn-primary'>CheckOut</a>";
+
+            $('[data-toggle="popover"]').popover();
+            document.getElementById('panier').setAttribute('data-content',bull);
+         }
+    </script>
+{% endblock  %}
